@@ -26,3 +26,7 @@ def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solv
     return sol
 
 vmap_batch_solve = jax.vmap(batch_solve, in_axes=(0, None, None, None, None, None, None, None, None, None, None))
+
+def batch_sol_to_fun(solutions, num_samples):
+    V = jax.vmap(LinearInterpolation, in_axes=(None, 0))(solutions.ts[0,:], solutions.ys)
+    return lambda t: jax.vmap(lambda interp, t: interp.evaluate(t))(V, jnp.full((num_samples,), t))
