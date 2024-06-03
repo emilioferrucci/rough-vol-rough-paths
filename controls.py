@@ -10,7 +10,7 @@ def fun_to_array(grid, fun):
     return jax.vmap(lambda t: fun(t))(grid)
 
 def lagged_control(fun, lag):
-    return lambda s,t: fun(jnp.maximum(0,t - lag/2)) - fun(jnp.maximum(0,s - lag/2))
+    return lambda s,t: fun(jnp.maximum(0,t - lag)) - fun(jnp.maximum(0,s - lag))
 
 def join_controls(lagged, original):
     return lambda s,t: jnp.concatenate((lagged(s,t), original(s,t)))
