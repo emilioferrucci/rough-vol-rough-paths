@@ -19,6 +19,10 @@ def batch_sol_to_fun(solutions, num_samples):
     V = jax.vmap(LinearInterpolation, in_axes=(None, 0))(solutions.ts[0,:], solutions.ys)
     return lambda t: jnp.squeeze(jax.vmap(lambda interp, t: interp.evaluate(t))(V, jnp.full((num_samples,), t)))
 
+def evaluate_and_reshape(interp):
+    return lambda s,t: jnp.atleast_1d(interp(s,t))
+
+
 
 def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, args=None):
 
