@@ -129,3 +129,21 @@ def hybrid_scheme(grid_points, M, T, H, kappa):
     return pathf, pathB
 
 
+
+
+def cholesky_3by3_matrix(a, b, c): # only use if no two brownians are fully correlated
+    matrix = jnp.array([[1,a,b],[a,1,c],[b,c,1]])
+    return jax.scipy.linalg.cholesky(matrix, lower=True)
+
+def correlated_fbm_bm(rho, grid_points, T, H, kappa):
+    pathf, pathB = hybrid_scheme(grid_points, 2, T, H, kappa)
+    correlated_fbm =  rho*pathf[0,:] + jnp.sqrt(1-rho**2)*pathf[1,:]
+    return correlated_fbm, pathB[0,:]
+
+def correlated_fbm_bm_bm(rho01, rho02, rho12, grid_points, T, H, kappa):
+    pathf, pathB = hybrid_scheme(grid_points, 3, T, H, kappa)
+    sigma = cholesky_3by3_matrix(rho01, rho02, rho12)
+    pathf_corr = jnp.dot(sigma,pathf)
+    pathB_corr = jnp.dot(sigma,pathB)
+    return pathf_corr[0,:], pathB_corr[1,:], pathB_corr[2,:]
+    
