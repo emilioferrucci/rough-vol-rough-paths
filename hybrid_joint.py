@@ -8,6 +8,8 @@ import time
 import scipy.stats
 from scipy.optimize import bisect
 from scipy.stats import norm
+import jax.numpy as jnp
+import jax
 
 def hybrid_scheme(grid_points, M, T, H, kappa):
     """
@@ -146,4 +148,21 @@ def correlated_fbm_bm_bm(rho01, rho02, rho12, grid_points, T, H, kappa):
     pathf_corr = jnp.dot(sigma,pathf)
     pathB_corr = jnp.dot(sigma,pathB)
     return pathf_corr[0,:], pathB_corr[1,:], pathB_corr[2,:]
+
+
+# The following function returns a fully correlated fbm and bm, and a bm with arbitrary
+# correlation with the first two components (cannot be done with Cholesky bc degenerate)
+def degenerate_fbm_1_bm_bm(rho, grid_points, T, H, kappa):
+    pathf, pathB = hybrid_scheme(grid_points, 2, T, H, kappa)
+    correlated_bm = rho*pathB[0,:] + jnp.sqrt(1-rho**2)*pathB[1,:]
+    return pathf[0,:], pathB[0,:], correlated_bm
     
+    
+# The following function returns a fbm and two identical bms correlated with the fbm
+def degenerate_fbm_bm_1_bm(rho, grid_points, T, H, kappa):
+    fbm, bm = correlated_fbm_bm(rho, grid_points, T, H, kappa)
+    return fbm, bm, bm
+
+def degenerate_fbm_1_bm_1_bm(grid_points, T, H, kappa):
+    pathf, pathB = hybrid_scheme(grid_points, 1, T, H, kappa)
+    return pathf[0,:], pathB[0,:], pathB[0,:]
