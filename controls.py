@@ -9,7 +9,7 @@ from diffrax import *
 def fun_to_array(grid, fun):
     return jax.vmap(lambda t: fun(t))(grid)
 
-def lagged_control(fun, lag):
+def lagged_control(fun, lag): # I should have written this to accept a function of two parameters, but let's continue like this
     return lambda s,t: fun(jnp.maximum(0,t - lag)) - fun(jnp.maximum(0,s - lag))
 
 def join_controls(lagged, original):

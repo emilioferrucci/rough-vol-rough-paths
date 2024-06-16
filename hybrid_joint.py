@@ -163,6 +163,7 @@ def degenerate_fbm_bm_1_bm(rho, grid_points, T, H, kappa):
     fbm, bm = correlated_fbm_bm(rho, grid_points, T, H, kappa)
     return fbm, bm, bm
 
+# Everything fully correlated
 def degenerate_fbm_1_bm_1_bm(grid_points, T, H, kappa):
     pathf, pathB = hybrid_scheme(grid_points, 1, T, H, kappa)
     return pathf[0,:], pathB[0,:], pathB[0,:]
