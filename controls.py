@@ -15,6 +15,9 @@ def lagged_control(fun, lag): # I should have written this to accept a function 
 def join_controls(lagged, original):
     return lambda s,t: jnp.concatenate((lagged(s,t), original(s,t)))
 
+def stack_controls(lagged, original):
+    return lambda s,t: jnp.vstack((lagged(s,t), original(s,t)))
+
 def batch_sol_to_fun(solutions, num_samples):
     V = jax.vmap(LinearInterpolation, in_axes=(None, 0))(solutions.ts[0,:], solutions.ys)
     return lambda t: jnp.squeeze(jax.vmap(lambda interp, t: interp.evaluate(t))(V, jnp.full((num_samples,), t)))
@@ -23,15 +26,10 @@ def evaluate_and_reshape(interp):
     return lambda s,t: jnp.atleast_1d(interp(s,t))
 
 
-
 def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, args=None):
-
     vbt = VirtualBrownianTree(t0, t1+2*epsilon, tol=epsilon, shape=(dim_bm,), key=key)
-    
     terms = MultiTerm(ODETerm(drift), ControlTerm(diffusion, vbt))
-
     sol = diffeqsolve(terms, solver, t0, t1, dt0 = solver_epsilon, max_steps=None, y0=y0, saveat=saveat, args = args)
-
     return sol
 
 
@@ -42,3 +40,11 @@ vmap_batch_solve = jax.vmap(batch_solve, in_axes=(0, None, None, None, None, Non
 vmap_batch_solve_diff_temp = jax.vmap(batch_solve, in_axes=(0, None, None, None, None, None, None, None, None, None, None, 0))
 def vmap_batch_solve_diff(split_key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat):
     return vmap_batch_solve_diff_temp(split_key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, jnp.arange(split_key.shape[0]))
+
+def batch_fbm_solve(sample, control, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, args=None):
+    sample_control = lambda s,t: control(s,t)[:,sample]
+    terms = MultiTerm(ODETerm(drift), ControlTerm(diffusion, sample_control))
+    return diffeqsolve(terms, solver, t0, t1, dt0 = solver_epsilon, max_steps=None, y0=y0, saveat=saveat, args = args)
+
+vmap_batch_fbm_solve = jax.vmap(batch_fbm_solve, in_axes=(0, None, None, None, None, None, None, None, None, None))
+
