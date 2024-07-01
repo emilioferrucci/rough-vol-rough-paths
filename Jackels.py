@@ -50,7 +50,7 @@ VOLATILITY_VALUE_TO_SIGNAL_PRICE_IS_ABOVE_MAXIMUM = sys.float_info.max;
 
 def is_below_horizon(x): return abs(x) < DENORMALIZATION_CUTOFF; # This weeds out denormalized (a.k.a. 'subnormal') numbers.
 
-from scipy import expm1
+import scipy.special as special
 
 
 def norm_pdf(x): return ONE_OVER_SQRT_TWO_PI*exp(-.5*x*x);
@@ -59,7 +59,7 @@ def normalised_intrinsic(x, q): #q=±1
     if (q*x<=0):
         return 0;
     else:
-        return q * (expm1(-0.5*x)+1) * expm1(x)
+        return q * (special.expm1(-0.5*x)+1) * special.expm1(x)
 
 def normalised_intrinsic_call(x): return normalised_intrinsic(x,1)
 
