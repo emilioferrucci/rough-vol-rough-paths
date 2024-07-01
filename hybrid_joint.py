@@ -1,16 +1,24 @@
+##
+## Ofelia's (deeply) commented version
+##
+
+# Import the needed libraries
 import numpy as np
 import scipy
 import scipy.signal as signal
 import scipy.integrate as integrate
-import matplotlib.pyplot as plt
 import scipy.special as special
-import time
 import scipy.stats
 from scipy.optimize import bisect
 from scipy.stats import norm
 import jax.numpy as jnp
 import jax
+import time
 
+# the HYBRID SCHEME
+# OUTPUT: 
+#        pathf = paths of the fBm, 
+#        pathB = paths of the Bm driving the fBm.
 def hybrid_scheme(grid_points, M, T, H, kappa):
     """
     grid_points: number of points in the simulation grid
@@ -132,23 +140,59 @@ def hybrid_scheme(grid_points, M, T, H, kappa):
 
 
 
-
+# Cholesky decomposition of a 3-dim covariance matrix for correlation paramters given as input
+# OUTPUT: 
+#        Cholesky decomposition of the covariance matrix, 
 def cholesky_3by3_matrix(a, b, c): # only use if no two brownians are fully correlated
+    """
+    a,b,c = correlation parameters between the BMs
+    """
+    # define the correlation matrix
     matrix = jnp.array([[1,a,b],[a,1,c],[b,c,1]])
+    # return the Cholesky decomposition of the correlation matrix
     return jax.scipy.linalg.cholesky(matrix, lower=True)
 
+# Function to generate a couple of trajectories of the fBm and a given correlated Bm with given correlation
+# OUTPUT: 
+#        correlated_fbm, pathB[0,:] = fBm and correlated Bm.
 def correlated_fbm_bm(rho, grid_points, T, H, kappa):
+    """
+    rho: correlation between the Bm and the Bm driving the fBm
+    grid_points: number of points in the simulation grid
+    kappa: Hybrid scheme parameter (equal to 1 or 2)
+    H: Hurst parameter
+    T: time horizon
+    """
+    # generate 2 paths for the couple (fBm,Bm) 
     pathf, pathB = hybrid_scheme(grid_points, 2, T, H, kappa)
+    # with the 2 fBm trajs generate a trajectory of the fBm with correlation rho with the first Bm
     correlated_fbm =  rho*pathf[0,:] + jnp.sqrt(1-rho**2)*pathf[1,:]
     return correlated_fbm, pathB[0,:]
 
+# Function to generate a couple of trajectories of the fBm and a given correlated Bm with given correlation
+# OUTPUT: 
+#        pathf_corr[0,:], pathB_corr[1,:], pathB_corr[2,:]] = fBm and correlated Bm.
 def correlated_fbm_bm_bm(rho01, rho02, rho12, grid_points, T, H, kappa):
+    """
+    rho01, rho02, rho12: correlation between the Bm and the Bm driving the fBm
+    grid_points: number of points in the simulation grid
+    kappa: Hybrid scheme parameter (equal to 1 or 2)
+    H: Hurst parameter
+    M: number of paths to simulate
+    T: time horizon
+    """
+    # generate 3 paths for the couple (fBm,Bm) 
     pathf, pathB = hybrid_scheme(grid_points, 3, T, H, kappa)
+    # generate the Cholesky dec of the covariance matrix associated to that correlations rho
     sigma = cholesky_3by3_matrix(rho01, rho02, rho12)
+    # generate a 3 dim fBm with correlation structure given by sigma
     pathf_corr = jnp.dot(sigma,pathf)
+    # generate the corresponding 3 dim Bm with correlation structure given by sigma
     pathB_corr = jnp.dot(sigma,pathB)
+    # in order to have a fBm and two Bms with the correlation structure in sigma take the first fBm and second and third Bms.
     return pathf_corr[0,:], pathB_corr[1,:], pathB_corr[2,:]
 
+# Because of the use of the Cholesky decomposition the function above only work if none of the paramteres rho01, rho02, rho12 is equal to 1. If this is not the case we have to use the functions defined below.
 
 # The following function returns a fully correlated fbm and bm, and a bm with arbitrary
 # correlation with the first two components (cannot be done with Cholesky bc degenerate)
