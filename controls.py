@@ -35,15 +35,12 @@ def join_controls(lagged, original):
     lagged, original: two functions of two arguments
     """
     return lambda s,t: jnp.concatenate((lagged(s,t), original(s,t)))
-<<<<<<< Updated upstream
 
 def stack_controls(lagged, original):
     return lambda s,t: jnp.vstack((lagged(s,t), original(s,t)))
 
-=======
  
 # OUTPUT: 
->>>>>>> Stashed changes
 def batch_sol_to_fun(solutions, num_samples):
     """
     solutions, 
@@ -60,12 +57,10 @@ def evaluate_and_reshape(interp):
     """
     return lambda s,t: jnp.atleast_1d(interp(s,t))
 
-<<<<<<< Updated upstream
 
 def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, args=None):
     vbt = VirtualBrownianTree(t0, t1+2*epsilon, tol=epsilon, shape=(dim_bm,), key=key)
     terms = MultiTerm(ODETerm(drift), ControlTerm(diffusion, vbt))
-=======
 # Function to solve the SDE 
 # OUTPUT: solution to the SDE
 def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solver_epsilon, saveat, args=None):
@@ -86,7 +81,6 @@ def batch_solve(key, epsilon, dim_bm, drift, diffusion, y0, solver, t0, t1, solv
     # putting together drift and diffusion of the SDE
     terms = MultiTerm(ODETerm(drift), ControlTerm(diffusion, vbt))
     # solving the SDE
->>>>>>> Stashed changes
     sol = diffeqsolve(terms, solver, t0, t1, dt0 = solver_epsilon, max_steps=None, y0=y0, saveat=saveat, args = args)
     return sol
 
