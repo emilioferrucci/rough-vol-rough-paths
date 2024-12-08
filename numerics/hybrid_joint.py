@@ -212,18 +212,6 @@ def degenerate_fbm_1_bm_1_bm(grid_points, T, H, kappa):
     return pathf[0,:], pathB[0,:], pathB[0,:]
 
 # Wrappers for the parallel case
-def correlated_fbm_bm_bm_wrapper(args):
-    rho01, rho02, rho12, grid_points, T, kappa = args
-    return correlated_fbm_bm_bm(rho01, rho02, rho12, grid_points, T, 0.1, kappa)
-
-def degenerate_fbm_1_bm_bm_wrapper(args):
-    rho, grid_points, T, kappa = args
-    return degenerate_fbm_1_bm_bm(rho, grid_points, T, 0.1, kappa)
-
-def degenerate_fbm_bm_1_bm_wrapper(args):
-    rho, grid_points, T, kappa = args
-    return degenerate_fbm_bm_1_bm(rho, grid_points, T, 0.1, kappa)
-
-def degenerate_fbm_1_bm_1_bm_wrapper(args):
-    grid_points, T, kappa = args
-    return degenerate_fbm_1_bm_1_bm(rho, grid_points, T, 0.1, kappa)
+def correlated_fbm_bm_wrapper(args):
+    rho, grid_points, T, H, kappa = args
+    return correlated_fbm_bm(rho, grid_points, T, H, kappa)
